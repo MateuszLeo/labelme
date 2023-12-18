@@ -1,44 +1,14 @@
-import { makeAutoObservable } from "mobx";
-import { createContext, useContext } from "react";
-
-interface DataURLFile {
+export interface DataURLFile {
   id: string;
   dataURL: string;
 }
 
-export class FileStore {
-  _files: Record<string, DataURLFile> = {};
-
-  constructor() {
-    makeAutoObservable(this);
-  }
-
-  add(file: DataURLFile) {
-    this._files[file.id] = file;
-  }
-
-  get(id: string) {
-    return this._files[id];
-  }
-}
-
-const FileContext = createContext(new FileStore());
-
-export function useFileStore() {
-  return useContext(FileContext);
-}
 export async function createFile(id: string, file: Blob | File): Promise<DataURLFile> {
   const dataURL = await getDataURL(file);
   return {
     id,
     dataURL,
   };
-}
-
-const ImageCacheContext = createContext(new Map<string, HTMLImageElement>());
-
-export function useImageCache() {
-  return useContext(ImageCacheContext);
 }
 
 export async function getDataURL(file: Blob | File): Promise<string> {

@@ -1,11 +1,11 @@
 import { observer } from "mobx-react-lite";
 import { useEffect, useState } from "react";
+import { AppState } from "./AppState";
+import { AppStateContext } from "./AppStateContext";
 import { Canvas } from "./Canvas";
-import { newShelfFromTuples } from "./Element";
+import { newImageElementFromBlob } from "./constructors";
+import { PointTuple } from "./Element";
 import { UILayer } from "./UILayer";
-import { PointTuple, UIStateStore } from "./UIState";
-import { UIStateContext } from "./UIStateContext";
-import { useAddImage } from "./useAddImage";
 
 export interface LabelerProps {
   imageSrc: string;
@@ -15,38 +15,33 @@ export interface LabelerProps {
 
 export const Labeler = observer(function Labeler(props: LabelerProps) {
   const [state] = useState(() => {
-    const elements = [];
-    for (const element of props.shelves) {
-      elements.push(...newShelfFromTuples(element));
-    }
-    return { store: new UIStateStore(window.innerWidth, window.innerHeight, elements) };
+    return { store: new AppState(window.innerWidth, window.innerHeight) };
   });
 
-  return (
-    <UIStateContext.Provider value={state}>
-      <Root {...props} />
-    </UIStateContext.Provider>
-  );
-});
-
-const Root = observer(function Root(props: LabelerProps) {
-  const addImage = useAddImage();
-
   useEffect(() => {
-    async function getExample() {
+    async function initializeAppState() {
       const response = await fetch(props.imageSrc, {
         headers: { "Content-Type": "image/jpeg" },
       });
       const blob = await response.blob();
-      await addImage(blob);
+      const imageElement = await newImageElementFromBlob(blob, state.store);
+      state.store.setImageElement(imageElement);
+      state.store.initializeShelves(props.shelves);
     }
-    getExample();
-  }, []);
+    state.store.status = "idle";
+    initializeAppState().then(() => {
+      state.store.status = "ready";
+    });
+  }, [props.imageSrc, props.shelves, state.store]);
+
+  if (state.store.status === "idle") {
+    return <></>;
+  }
 
   return (
-    <>
+    <AppStateContext.Provider value={state}>
       <UILayer />
       <Canvas onChange={props.onChange} />
-    </>
+    </AppStateContext.Provider>
   );
 });

@@ -1,7 +1,7 @@
 import { MousePointer, Square, Trash } from "lucide-react";
 import { observer } from "mobx-react-lite";
 import { PropsWithChildren } from "react";
-import { useUIStateStore } from "./UIStateContext";
+import { useAppState } from "./AppStateContext";
 
 interface ToolbarButtonProps extends PropsWithChildren {
   onClick?: () => void;
@@ -22,45 +22,36 @@ function ToolbarButton(props: ToolbarButtonProps) {
 }
 
 export const Toolbar = observer(function Toolbar() {
-  const uiStore = useUIStateStore();
+  const appState = useAppState();
 
   return (
     <div className={"flex items-center justify-center gap-4"}>
       <div className={"bg-white flex shadow-sm border border-slate-200 p-1 gap-1 rounded-md pointer-events-auto z-20"}>
         <ToolbarButton
-          isDisabled={!uiStore.selectedElement}
+          isDisabled={!appState.selectedElement}
           onClick={() => {
-            uiStore.deleteCurrentElement();
+            appState.removeCurrentElement();
           }}
         >
           <Trash />
         </ToolbarButton>
         <ToolbarButton
-          isActive={uiStore.tool === "selection"}
+          isActive={appState.tool === "selection"}
           onClick={() => {
-            uiStore.tool = "selection";
+            appState.tool = "selection";
           }}
         >
-          <MousePointer fill={uiStore.tool === "selection" ? "black" : "white"} />
+          <MousePointer fill={appState.tool === "selection" ? "black" : "white"} />
         </ToolbarButton>
         <ToolbarButton
-          isActive={uiStore.tool === "draw"}
+          isActive={appState.tool === "draw"}
           onClick={() => {
-            uiStore.tool = "draw";
+            appState.tool = "draw";
           }}
         >
-          <Square fill={uiStore.tool === "draw" ? "black" : "white"} />
+          <Square fill={appState.tool === "draw" ? "black" : "white"} />
         </ToolbarButton>
       </div>
-    </div>
-  );
-});
-
-export const Zoom = observer(function Zoom() {
-  return (
-    <div className={"fixed bottom-10 left-10 flex gap-4"}>
-      <button>+</button>
-      <button>-</button>
     </div>
   );
 });

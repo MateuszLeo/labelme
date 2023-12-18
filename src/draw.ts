@@ -1,34 +1,24 @@
-import { getPoints, getQuadrangles, ImageElement, LabelMeElement, PointElement, ShelfElement } from "./Element";
+import { AppState } from "./AppState";
+import { ImageElement, LabelMeElement, PointElement, ShelfElement, ZoomElement } from "./Element";
 
 interface DrawConfig {
   canvas: HTMLCanvasElement;
   imageCache: Map<string, HTMLImageElement>;
-  elements: LabelMeElement[];
-  selectedElementId: string | null;
+  appState: AppState;
 }
 
-const selectionFillColor = "rgba(61, 90, 254, 0.2)";
-const selectionStrokeColor = "rgba(61, 90, 254, 1)";
-
 function drawShelf(shelfElement: ShelfElement, context: CanvasRenderingContext2D, drawConfig: DrawConfig) {
-  const isSelected = drawConfig.selectedElementId === shelfElement.id;
+  const isSelected = shelfElement === drawConfig.appState.selectedElement;
 
   if (isSelected) {
-    context.fillStyle = selectionFillColor;
-    context.strokeStyle = selectionStrokeColor;
+    context.fillStyle = drawConfig.appState.selection.fillColor;
+    context.strokeStyle = drawConfig.appState.selection.strokeColor;
   } else {
     context.fillStyle = shelfElement.color;
     context.strokeStyle = shelfElement.color;
   }
 
-  const [quadrangle] = getQuadrangles(drawConfig.elements, shelfElement.quadrangleId);
-  const points = getPoints(
-    drawConfig.elements,
-    quadrangle.topLeftPointId,
-    quadrangle.topRightPointId,
-    quadrangle.bottomRightPointId,
-    quadrangle.bottomLeftPointId,
-  );
+  const points = shelfElement.points;
 
   function drawShape() {
     const shape = new Path2D();
@@ -45,25 +35,27 @@ function drawShelf(shelfElement: ShelfElement, context: CanvasRenderingContext2D
     context.fill(shape);
   }
 
+  drawShape();
+
   function drawPointIndicator(p: PointElement) {
     context.beginPath();
     context.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
+    context.stroke();
     context.closePath();
     context.fill();
   }
 
-  drawShape();
   if (isSelected) {
-    context.fillStyle = selectionStrokeColor;
-    for (const point of points) {
+    context.strokeStyle = drawConfig.appState.selection.strokeColor;
+    for (const point of shelfElement.points) {
       drawPointIndicator(point);
     }
   }
 }
 
-function drawImage(img: ImageElement, context: CanvasRenderingContext2D, renderConfig: DrawConfig) {
+export function drawImage(img: ImageElement, context: CanvasRenderingContext2D, renderConfig: DrawConfig) {
   const image = renderConfig.imageCache.get(img.fileId)!;
-  const [boundPoint] = getPoints(renderConfig.elements, img.boundPointId);
+  const boundPoint = img.bounds;
 
   context.drawImage(
     image,
@@ -74,28 +66,55 @@ function drawImage(img: ImageElement, context: CanvasRenderingContext2D, renderC
   );
 }
 
+const canvas = document.createElement("canvas");
+const ctx = canvas.getContext("2d")!;
+
+export function drawZoom(zoomElement: ZoomElement, context: CanvasRenderingContext2D) {
+  const point = zoomElement.point;
+
+  const imageData = context.getImageData(
+    point.x - point.radius / 2,
+    point.y - point.radius / 2,
+    point.radius,
+    point.radius,
+  );
+
+  ctx.putImageData(imageData, 0, 0);
+  context.drawImage(
+    canvas,
+    0,
+    0,
+    point.radius,
+    point.radius,
+    0,
+    0,
+    point.radius * zoomElement.size,
+    point.radius * zoomElement.size,
+  );
+}
+
 function drawElement(element: LabelMeElement, context: CanvasRenderingContext2D, drawConfig: DrawConfig) {
-  switch (element.type) {
-    case "image":
-      drawImage(element, context, drawConfig);
-      break;
-    case "shelf":
-      drawShelf(element, context, drawConfig);
-      break;
-    default:
-      break;
+  if (element.type === "image") {
+    drawImage(element, context, drawConfig);
+  } else if (element.type === "shelf") {
+    drawShelf(element, context, drawConfig);
   }
 }
 
-function prepareCanvas(canvas: HTMLCanvasElement) {
-  const ctx = canvas.getContext("2d")!;
+function prepareCanvas(canvas: HTMLCanvasElement, willReadFrequently: boolean = false) {
+  const ctx = canvas.getContext("2d", { willReadFrequently })!;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   return ctx;
 }
 
 export function drawElements(config: DrawConfig) {
-  const ctx = prepareCanvas(config.canvas);
-  for (const element of config.elements) {
+  const ctx = prepareCanvas(config.canvas, Boolean(config.appState.zoomElement));
+
+  for (const element of config.appState.elements) {
     drawElement(element, ctx, config);
+  }
+
+  if (config.appState.zoomElement) {
+    drawZoom(config.appState.zoomElement, ctx);
   }
 }
