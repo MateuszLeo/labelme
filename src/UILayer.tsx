@@ -13,13 +13,16 @@ function ToolbarButton(props: ToolbarButtonProps) {
   return (
     <button
       className={`${props.isActive ? "bg-indigo-100" : "bg-white"}`
-        + " p-2 rounded-md hover:bg-indigo-50" + (props.isDisabled ? " opacity-50" : "")}
+        + " p-2 rounded-md hover:bg-indigo-50" + " disabled:opacity-50"}
       onClick={props.onClick}
+      disabled={props.isDisabled}
     >
       {props.children}
     </button>
   );
 }
+
+const tools = [{ name: "selection", Icon: MousePointer }, { name: "draw", Icon: Square }] as const;
 
 export const Toolbar = observer(function Toolbar() {
   const appState = useAppState();
@@ -35,22 +38,17 @@ export const Toolbar = observer(function Toolbar() {
         >
           <Trash />
         </ToolbarButton>
-        <ToolbarButton
-          isActive={appState.tool === "selection"}
-          onClick={() => {
-            appState.tool = "selection";
-          }}
-        >
-          <MousePointer fill={appState.tool === "selection" ? "black" : "white"} />
-        </ToolbarButton>
-        <ToolbarButton
-          isActive={appState.tool === "draw"}
-          onClick={() => {
-            appState.tool = "draw";
-          }}
-        >
-          <Square fill={appState.tool === "draw" ? "black" : "white"} />
-        </ToolbarButton>
+        {tools.map((tool) => (
+          <ToolbarButton
+            key={tool.name}
+            isActive={appState.tool === tool.name}
+            onClick={() => {
+              appState.tool = tool.name;
+            }}
+          >
+            <tool.Icon fill={appState.tool === tool.name ? "black" : "white"} />
+          </ToolbarButton>
+        ))}
       </div>
     </div>
   );

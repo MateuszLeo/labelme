@@ -70,9 +70,9 @@ export function getHitAtPosition(
   for (let i = elements.length - 1; i >= 0; i--) {
     const element = elements[i];
     if (element.type === "shelf") {
-      const detection = inShelf(point, element);
-      if (detection) {
-        return detection;
+      const maybeHit = inShelf(point, element);
+      if (maybeHit) {
+        return maybeHit;
       }
     }
   }

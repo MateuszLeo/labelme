@@ -87,20 +87,27 @@ export const Canvas = observer(function Canvas(props: CanvasProps) {
   function makePointerUpEvent(state: PointerDownState) {
     return () => {
       appState.tool = "selection";
-
       if (appState.editingElement) {
         appState.selectedElement = appState.editingElement;
         appState.editingElement = null;
       }
-
       appState.zoomElement = null;
 
-      window.removeEventListener("pointermove", state.onMove!);
-      window.removeEventListener("pointerup", state.onUp!);
+      canvasRef.current!.removeEventListener("pointermove", state.onMove!);
+      canvasRef.current!.removeEventListener("pointerup", state.onUp!);
     };
   }
 
-  function createElement(pointerDownState: PointerDownState) {
+  function handlePointerDown(e: React.PointerEvent<HTMLCanvasElement>) {
+    const pointerDownState: PointerDownState = {
+      lastPointerCords: pointFromEvent(e),
+      onMove: null,
+      onUp: null,
+      hit: null,
+    };
+
+    pointerDownState.hit = getHitAtPosition(pointerDownState.lastPointerCords, appState.elements);
+
     if (appState.tool === "selection") {
       appState.editingElement = null;
       appState.selectedElement = pointerDownState.hit?.element ?? null;
@@ -112,27 +119,15 @@ export const Canvas = observer(function Canvas(props: CanvasProps) {
       appState.editingElement = shelf;
       appState.addElements(appState.editingElement);
     }
-  }
 
-  function handlePointerDown(e: React.PointerEvent<HTMLCanvasElement>) {
-    const state: PointerDownState = {
-      lastPointerCords: pointFromEvent(e),
-      onMove: null,
-      onUp: null,
-      hit: null,
-    };
+    const pointerMoveEventHandler = makePointerMoveEvent(pointerDownState);
+    const pointerUpEventHandler = makePointerUpEvent(pointerDownState);
 
-    state.hit = getHitAtPosition(state.lastPointerCords, appState.elements);
-    createElement(state);
+    pointerDownState.onMove = pointerMoveEventHandler;
+    pointerDownState.onUp = pointerUpEventHandler;
 
-    const pointerMoveEventHandler = makePointerMoveEvent(state);
-    const pointerUpEventHandler = makePointerUpEvent(state);
-
-    state.onMove = pointerMoveEventHandler;
-    state.onUp = pointerUpEventHandler;
-
-    window.addEventListener("pointermove", pointerMoveEventHandler);
-    window.addEventListener("pointerup", pointerUpEventHandler);
+    canvasRef.current!.addEventListener("pointermove", pointerMoveEventHandler);
+    canvasRef.current!.addEventListener("pointerup", pointerUpEventHandler);
   }
 
   return (
@@ -143,7 +138,7 @@ export const Canvas = observer(function Canvas(props: CanvasProps) {
         touchAction: "none",
         width: appState.width,
         height: appState.height,
-        background: "transparent",
+        background: "white",
       }}
       width={appState.width}
       height={appState.height}
