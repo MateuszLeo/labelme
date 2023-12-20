@@ -1,4 +1,4 @@
-import { AppState } from "./AppState";
+import { AppState, fillColorSelection, strokeColorSelection } from "./AppState";
 import { ImageElement, LabelMeElement, PointElement, ShelfElement, ZoomElement } from "./Element";
 
 interface DrawConfig {
@@ -11,8 +11,8 @@ function drawShelf(shelfElement: ShelfElement, context: CanvasRenderingContext2D
   const isSelected = shelfElement === drawConfig.appState.selectedElement;
 
   if (isSelected) {
-    context.fillStyle = drawConfig.appState.selection.fillColor;
-    context.strokeStyle = drawConfig.appState.selection.strokeColor;
+    context.fillStyle = fillColorSelection;
+    context.strokeStyle = strokeColorSelection;
   } else {
     context.fillStyle = shelfElement.color;
     context.strokeStyle = shelfElement.color;
@@ -46,7 +46,9 @@ function drawShelf(shelfElement: ShelfElement, context: CanvasRenderingContext2D
   }
 
   if (isSelected) {
-    context.strokeStyle = drawConfig.appState.selection.strokeColor;
+    context.strokeStyle = strokeColorSelection;
+    context.fillStyle = "transparent";
+    context.lineWidth = 2;
     for (const point of shelfElement.points) {
       drawPointIndicator(point);
     }
@@ -81,7 +83,7 @@ function prepareCanvas(canvas: HTMLCanvasElement, willReadFrequently: boolean = 
 }
 
 export function drawElements(config: DrawConfig) {
-  const ctx = prepareCanvas(config.canvas, Boolean(config.appState.zoomElement));
+  const ctx = prepareCanvas(config.canvas);
 
   for (const element of config.appState.elements) {
     drawElement(element, ctx, config);

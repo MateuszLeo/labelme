@@ -6,13 +6,12 @@ export type Tool = "selection" | "draw";
 
 export type AppStateStatus = "idle" | "ready";
 
+export const strokeColorSelection = "rgba(207, 255, 0, 1)";
+export const fillColorSelection = "rgba(207 255, 0, 0.4)";
+
 export class AppState {
   width = 0;
   height = 0;
-  selection = {
-    strokeColor: "rgba(61, 90, 254, 1)",
-    fillColor: "rgba(61, 90, 254, 0.2)",
-  };
 
   _canvas: HTMLCanvasElement | null = null;
 

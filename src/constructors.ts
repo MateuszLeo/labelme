@@ -6,8 +6,11 @@ export function uuid() {
   return Math.random().toString(36).substring(2) + Date.now().toString(36);
 }
 
+const strokeColorSelection = "rgba(245, 66, 167, 1)";
+const fillColorSelection = "rgba(245, 66, 167, 0.1)";
+
 const testColor = "rgba(58, 150, 161, 0.8)";
-const usedRGBAs = new Set<string>([testColor]);
+const usedRGBAs = new Set<string>([testColor, strokeColorSelection, fillColorSelection]);
 
 export function randomRGBA() {
   // lazy way to make e2e tests deterministic
