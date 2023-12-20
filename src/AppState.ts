@@ -14,6 +14,8 @@ export class AppState {
     fillColor: "rgba(61, 90, 254, 0.2)",
   };
 
+  _canvas: HTMLCanvasElement | null = null;
+
   _imageElement: ImageElement | null = null;
   _status: AppStateStatus = "idle";
 
@@ -29,6 +31,17 @@ export class AppState {
     this.width = width;
     this.height = height;
     makeAutoObservable(this);
+  }
+
+  set canvas(canvas: HTMLCanvasElement) {
+    this._canvas = canvas;
+  }
+
+  get canvas() {
+    if (!this._canvas) {
+      throw new Error("Canvas is not defined");
+    }
+    return this._canvas;
   }
 
   get tool() {

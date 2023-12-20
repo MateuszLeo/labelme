@@ -2,6 +2,7 @@ import { MousePointer, Square, Trash } from "lucide-react";
 import { observer } from "mobx-react-lite";
 import { PropsWithChildren } from "react";
 import { useAppState } from "./AppStateContext";
+import { Zoom } from "./Zoom";
 
 interface ToolbarButtonProps extends PropsWithChildren {
   onClick?: () => void;
@@ -59,6 +60,7 @@ export const UILayer = observer(function UILayer() {
     <div className={"absolute z-20 w-full h-full pointer-events-none"}>
       <div className={"absolute pointer-events-none p-4 bottom-0 top-0 left-0 right-0"}>
         <Toolbar />
+        <Zoom />
       </div>
     </div>
   );

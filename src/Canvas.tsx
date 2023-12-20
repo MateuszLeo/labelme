@@ -31,6 +31,7 @@ export const Canvas = observer(function Canvas(props: CanvasProps) {
     if (!canvas) {
       return;
     }
+    appState.canvas = canvas;
 
     const drawReactionDispose = reaction(() => {
       return {

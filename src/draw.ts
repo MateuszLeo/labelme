@@ -66,33 +66,6 @@ export function drawImage(img: ImageElement, context: CanvasRenderingContext2D, 
   );
 }
 
-const canvas = document.createElement("canvas");
-const ctx = canvas.getContext("2d")!;
-
-export function drawZoom(zoomElement: ZoomElement, context: CanvasRenderingContext2D) {
-  const point = zoomElement.point;
-
-  const imageData = context.getImageData(
-    point.x - point.radius / 2,
-    point.y - point.radius / 2,
-    point.radius,
-    point.radius,
-  );
-
-  ctx.putImageData(imageData, 0, 0);
-  context.drawImage(
-    canvas,
-    0,
-    0,
-    point.radius,
-    point.radius,
-    0,
-    0,
-    point.radius * zoomElement.size,
-    point.radius * zoomElement.size,
-  );
-}
-
 function drawElement(element: LabelMeElement, context: CanvasRenderingContext2D, drawConfig: DrawConfig) {
   if (element.type === "image") {
     drawImage(element, context, drawConfig);
@@ -113,8 +86,37 @@ export function drawElements(config: DrawConfig) {
   for (const element of config.appState.elements) {
     drawElement(element, ctx, config);
   }
+}
 
-  if (config.appState.zoomElement) {
-    drawZoom(config.appState.zoomElement, ctx);
-  }
+export function drawZoom(
+  zoomElement: ZoomElement,
+  appCanvas: HTMLCanvasElement,
+  zoomCanvas: HTMLCanvasElement,
+) {
+  const appCanvasContext = appCanvas.getContext("2d", { willReadFrequently: true })!;
+  const zoomCanvasContext = prepareCanvas(zoomCanvas, false);
+
+  const imageData = appCanvasContext.getImageData(
+    zoomElement.point.x - zoomElement.point.radius / 2,
+    zoomElement.point.y - zoomElement.point.radius / 2,
+    zoomElement.point.radius,
+    zoomElement.point.radius,
+  );
+
+  zoomCanvasContext.putImageData(imageData, 0, 0);
+
+  const zoomedWidth = zoomElement.point.radius * zoomElement.size;
+  const zoomedHeight = zoomElement.point.radius * zoomElement.size;
+
+  zoomCanvasContext.drawImage(
+    zoomCanvas,
+    0,
+    0,
+    zoomElement.point.radius,
+    zoomElement.point.radius,
+    0,
+    0,
+    zoomedWidth,
+    zoomedHeight,
+  );
 }

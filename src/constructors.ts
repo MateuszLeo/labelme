@@ -58,7 +58,7 @@ export function newImageElement(
 
 export function newZoomElement(point: PointTuple): ZoomElement {
   const p = newPointElement(point);
-  p.radius = 100;
+  p.radius = 75;
   return { ...newBaseElement(), type: "zoom", point: p, size: 2 };
 }
 

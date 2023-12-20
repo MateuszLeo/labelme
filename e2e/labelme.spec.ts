@@ -17,6 +17,8 @@ async function drawShape(page: Page) {
 
 test("renders image with already defined labels", async ({ page }) => {
   const screenshot = await page.screenshot();
+  const locator = page.locator("canvas");
+  expect(await locator.count()).toBe(1);
   expect(screenshot).toMatchSnapshot();
 });
 
